@@ -74,7 +74,7 @@ Elixir's type system is weaker than I'd like, but by approaching software design
 ### i. Sum and Product Types
 A product type is either a tuple, or a record.
 
-Historical Note: Elixir used to have a native record type, but a few years ago Erlang implemented maps, which have more or less replaced records entirely. In real code, I'd recommend sticking to structs wherever possible, as pattern matching off of the type of the struct allows you to perform some level of type checking at runtime.
+Historical Note: Elixir does have a native record type, but a few years ago Erlang implemented maps, which have more or less replaced records entirely. In real code, I'd recommend sticking to structs wherever possible, as pattern matching off of the type of the struct allows you to perform some level of type checking at runtime.
 
 Elixir:
 ```elixir
@@ -91,7 +91,7 @@ Haskell:
 data Coordinate = Coordinate Integer Integer deriving (Show)
 
 data Person = Person { name :: String
-                     , age :: Integer}
+                     , age :: Integer} deriving (Show)
 ```
 
 A sum type is a tagged union, and represents the choice of one type out of many.
@@ -99,11 +99,16 @@ A sum type is a tagged union, and represents the choice of one type out of many.
 Elixir:
 ```elixir
 @type color :: :red | :green | :blue
+
+@type division_result :: :division_by_zero | {:success, float()}
 ```
 
 Haskell:
 ```haskell
 data Color = Red | Green | Blue deriving (Show)
+
+data DivisionResult = DivisionByZero
+                    | Success Double deriving (Show)
 ```
 
 Oftentimes, product types can be pronounced as `AND`, and sum types can be pronounced as `OR`.
@@ -198,6 +203,10 @@ In most statically typed functional languages, a type named `Maybe` is used to r
 
 ```haskell
 data Maybe a = Nothing | Just a
+
+first :: [a] -> Maybe a
+first [] = Nothing
+first (x:xs) = Just x
 ```
 
 Let's put everything we just learned into action.
@@ -259,11 +268,11 @@ data ContactInfo = PhoneNumber String
                  | EmailContactInfo
 
 data User = User { username :: String
-                , name :: Maybe String
-                , contactInfo :: ContactInfo
-                , paymentType :: String
-                , paypalId :: String
-                , stripeId :: String }
+                 , name :: Maybe String
+                 , contactInfo :: ContactInfo
+                 , paymentType :: String
+                 , paypalId :: String
+                 , stripeId :: String }
 
 sendEmail :: VerifiedEmail -> <some result>
 sendEmail email = ...
@@ -288,15 +297,20 @@ data PaymentMethod = Invoice
 ...
 
 data User = User { username :: String
-                , name :: Maybe String
-                , contactInfo :: ContactInfo
-                , paymentMethod :: PaymentMethod
+                 , name :: Maybe String
+                 , contactInfo :: ContactInfo
+                 , paymentMethod :: PaymentMethod
 
 ...
 
-chargeUser User { paymentMethod = Invoice } = doNothing
-chargeUser User { paymentMethod = (Paypal paypal) } = handlePaypal paypal
-chargeUser User { paymentMethod = (Stripe stripe) } = handleStripe stripe
+chargeUser User { paymentMethod = Invoice } =
+  doNothing
+
+chargeUser User { paymentMethod = (Paypal paypal) } =
+  handlePaypal paypal
+
+chargeUser User { paymentMethod = (Stripe stripe) } =
+  handleStripe stripe
 ```
 
 Beautiful. Now simply by looking at the definition of a `User`, many of the domain requirements of the data are made clear, including which fields are optional, which are mutually exclusive, and even the relationships between types and their capabilities.
@@ -431,9 +445,11 @@ Another place where ADTs are especially helpful, is in modeling failure and succ
 Imagine that you're building a chat client that fetches the conversation history, asynchronously, from an API, and then renders it. Sometimes the fetch takes a noticeably long time, and so you decide to model this data like so:
 
 ```haskell
-data ChatHistory = ChatHistory { messages :: [String], loading :: Boolean }
+data ChatHistory = ChatHistory { messages :: [String]
+                               , loading :: Boolean }
 
-initialChatHistory = ChatHistory { messages = [], loading = false }
+initialChatHistory = ChatHistory { messages = []
+                                 , loading = false }
 ```
 
 What's wrong with this?
@@ -451,9 +467,15 @@ data RemoteData e a = NotRequested
                     | Success a
 
 data ChatHistory = ChatHistory (RemoteData Http.Error [String])
+
+renderRemoteData :: RemoteData e a -> String
+renderRemoteData NotRequested = "Not requested yet!"
+renderRemoteData Loading = "Loading..."
+renderRemoteData (Failure e) = "Error: " ++ (show e)
+renderRemoteData (Success a) = "Fetched: " ++ (show a)
 ```
 
-Now, by matching against all of the type constructors, every time (something a strong type system will even enforce!), you can guarantee that you will address every possible case, every time.
+Now, by matching against all of the type constructors, every time (something a strong type system will even enforce! This is called `totality checking`), you can guarantee that you will address every possible case, every time.
 
 Furthermore, we've defined a type that can be reused for ALL types of remote data, by parameterizing it with the errors and data they relate to.
 
@@ -519,7 +541,7 @@ Haskell has a strong type system, but it doesn't have the strongest. There exist
 - `Coq` is dependently typed implementation of higher-order type theory, used as an interactive theorem prover
 - `Session Types` are a new branch of type theory, used for type checking communication protocols
 - `Linear Types`, implemented using linear logic, can be used to type check the management of resources, such as memory allocations, providing compile-time memory safety without the overheard of a tracing garbage collector
-- `Pony`, an experiment actor-model based language, models capabilities using its type system to enable the creation of secure systems and model secure information flow
+- `Pony`, an experimental actor-model based language, models capabilities using its type system to enable the creation of secure systems and model secure information flow
 
 ## 9. Further Reading / Watching
 - [Making Impossible States Impossible](https://www.youtube.com/watch?v=IcgmSRJHu_8)
@@ -527,3 +549,7 @@ Haskell has a strong type system, but it doesn't have the strongest. There exist
 - [Domain Modeling Made Functional](https://www.youtube.com/watch?v=Up7LcbGZFuo)
 - [Type First Development](http://tomasp.net/blog/type-first-development.aspx/)
 - [Types and Programming Languages](https://www.cis.upenn.edu/~bcpierce/tapl/)
+
+## 10. Building the Slideshow
+1. `yarn install`
+2. `./node_modules/.bin/markdown-to-slides slides.md -o slideshow.html`
