@@ -185,7 +185,8 @@ data Tree = Leaf | Node Integer Tree Tree deriving (Show)
 
 tree_map :: Tree -> (Integer -> Integer) -> Tree
 tree_map Leaf f = Leaf
-tree_map (Node value left right) f = Node (f value) (tree_map left f) (tree_map right f)
+tree_map (Node value left right) f =
+  Node (f value) (tree_map left f) (tree_map right f)
 ```
 
 ```haskell
