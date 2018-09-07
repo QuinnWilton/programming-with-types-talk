@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "markdown-to-slides": "^1.0.5"
+  }
+}
