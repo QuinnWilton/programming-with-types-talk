@@ -529,7 +529,7 @@ data View = Privileged PrivilegedView
 It's a quick and hacky example, but it succinctly captures the idea of privileged and unprivileged views, with a compile time constraint that unprivileged views can only ever contain public information.
 
 ## 7. You get the gist
-I could go over examples of domain modeling and cool applications of type systems for hours, but I should probably wrap this up. The main thing I'm hoping for people to get out of this is that there's a lot more to type systems than people usually let on. Used properly, a strong type system should enable you to express compile-time constraints that usually end up being relegated to compile-time checks.
+I could go over examples of domain modeling and cool applications of type systems for hours, but I should probably wrap this up. The main thing I'm hoping for people to get out of this is that there's a lot more to type systems than people usually let on. Used properly, a strong type system should enable you to express compile-time constraints that usually end up being relegated to runtime checks.
 
 I think that when people complain that type systems just get in the way of coding it means that they're thinking about type systems in the wrong way, and aren't taking advantage of the powerful tools at their disposal.
 
